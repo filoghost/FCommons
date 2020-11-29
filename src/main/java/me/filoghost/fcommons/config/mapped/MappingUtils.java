@@ -33,11 +33,7 @@ public class MappingUtils {
             throw new ConfigMappingException("declaration has more than 1 generic type");
         }
 
-        try {
-            return TypeInfo.of(typeArguments[0]);
-        } catch (ReflectiveOperationException e) {
-            throw new ConfigMappingException("error while getting type info of " + typeArguments[0], e);
-        }
+        return TypeInfo.of(typeArguments[0]);
     }
 
 }

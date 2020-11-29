@@ -35,7 +35,7 @@ public class MappedField<T> {
     
     public MappedField(ReflectField<T> field) throws ReflectiveOperationException, ConfigMappingException {
         this.field = field;
-        this.converter = ConverterRegistry.fromObjectType(field.getCheckedDeclarationType());
+        this.converter = ConverterRegistry.fromObjectType(field.getTypeInfo());
         this.configPath = field.getName().replace("__", ".").replace("_", "-");
         this.annotations = Stream.concat(
                 Arrays.stream(field.getAnnotations()),

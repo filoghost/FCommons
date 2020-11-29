@@ -39,8 +39,8 @@ public class ConfigValueTypeConverter<T> extends Converter<T, T> {
         return Objects.equals(fieldValue, configValue);
     }
 
-    public boolean supports(Class<?> clazz) {
-        return clazz == mainClass || (primitiveClass != null && clazz == primitiveClass);
+    public boolean supports(Class<?> typeClass) {
+        return typeClass == mainClass || (primitiveClass != null && typeClass == primitiveClass);
     }
 
 }

@@ -19,7 +19,7 @@ public class UnknownReflectField<T> implements ReflectField<T> {
     private final String fieldName;
     private final ReflectiveOperationException error;
 
-    public UnknownReflectField(Class<?> declaringClass, String fieldName, Throwable error) {
+    protected UnknownReflectField(Class<?> declaringClass, String fieldName, Throwable error) {
         this.declaringClass = declaringClass;
         this.fieldName = fieldName;
         if (error instanceof ReflectiveOperationException) {
@@ -30,12 +30,7 @@ public class UnknownReflectField<T> implements ReflectField<T> {
     }
 
     @Override
-    public TypeInfo<?> getDeclarationType() throws ReflectiveOperationException {
-        throw error;
-    }
-
-    @Override
-    public TypeInfo<T> getCheckedDeclarationType() throws ReflectiveOperationException {
+    public TypeInfo<T> getTypeInfo() throws ReflectiveOperationException {
         throw error;
     }
 

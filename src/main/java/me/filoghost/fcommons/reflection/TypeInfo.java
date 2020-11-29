@@ -11,32 +11,38 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.Arrays;
-import java.util.stream.Collectors;
 
 public class TypeInfo<T> {
 
+    private final Type type;
     private final Class<T> typeClass;
-    private final Type[] typeArguments;
 
-    private TypeInfo(Class<T> typeClass, Type... typeArguments) {
+    private TypeInfo(Type type, Class<T> typeClass) {
+        this.type = type;
         this.typeClass = typeClass;
-        this.typeArguments = typeArguments;
     }
 
+    public Type getType() {
+        return type;
+    }
+    
     public Class<T> getTypeClass() {
         return typeClass;
     }
 
     public Type[] getTypeArguments() {
-        return typeArguments;
-    }
-
-    public T cast(Object object) {
-        return typeClass.cast(object);
+        if (type instanceof ParameterizedType) {
+            return ((ParameterizedType) type).getActualTypeArguments();
+        } else {
+            return null;
+        }
     }
 
     public ReflectField<?>[] getDeclaredFields() throws ReflectiveOperationException {
+        if (typeClass == null) {
+            throw new ReflectiveOperationException("cannot read fields of type without class: " + type);
+        }
+        
         Field[] declaredFields;
         try {
             declaredFields = typeClass.getDeclaredFields();
@@ -52,6 +58,10 @@ public class TypeInfo<T> {
     }
 
     public T newInstance() throws ReflectiveOperationException {
+        if (typeClass == null) {
+            throw new ReflectiveOperationException("cannot create instance of type without class: " + type);
+        }
+
         try {
             Constructor<T> constructor = typeClass.getDeclaredConstructor();
             constructor.setAccessible(true);
@@ -61,6 +71,11 @@ public class TypeInfo<T> {
         } catch (Throwable t) {
             throw new ReflectiveOperationException(t);
         }
+    }
+
+    @Override
+    public String toString() {
+        return type.toString();
     }
 
     public static TypeInfo<?> of(Field field) throws ReflectiveOperationException {
@@ -75,45 +90,26 @@ public class TypeInfo<T> {
         return of(genericType);
     }
 
-    public static <T> TypeInfo<T> of(Class<T> clazz) {
-        return new TypeInfo<>(clazz);
+    public static <T> TypeInfo<T> of(Class<T> typeClass) {
+        Preconditions.notNull(typeClass, "type");
+        return new TypeInfo<>(typeClass, typeClass);
     }
 
-    public static TypeInfo<?> of(Type type) throws ReflectiveOperationException {
+    public static TypeInfo<?> of(Type type) {
         Preconditions.notNull(type, "type");
-
-        try {
-            Class<?> typeClass;
-            Type[] typeArguments;
-
-            if (type instanceof Class) {
-                typeClass = (Class<?>) type;
-                typeArguments = null;
-            } else if (type instanceof ParameterizedType) {
-                typeClass = (Class<?>) ((ParameterizedType) type).getRawType();
-                typeArguments = ((ParameterizedType) type).getActualTypeArguments();
-            } else {
-                throw new ReflectiveOperationException("type is not a Class or ParameterizedType");
-            }
-
-            return new TypeInfo<>(typeClass, typeArguments);
-
-        } catch (Throwable t) {
-            throw new ReflectiveOperationException(t);
-        }
+        return new TypeInfo<>(type, getClassFromType(type));
     }
 
-    @Override
-    public String toString() {
-        String output = typeClass.toString();
-
-        if (typeArguments != null && typeArguments.length > 0) {
-            output += Arrays.stream(typeArguments)
-                    .map(Object::toString)
-                    .collect(Collectors.joining(", ", "<", ">"));
+    private static Class<?> getClassFromType(Type type) {
+        if (type instanceof Class) {
+            return (Class<?>) type;
+        } else if (type instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            if (parameterizedType.getRawType() instanceof Class) {
+                return (Class<?>) parameterizedType.getRawType();
+            }
         }
-
-        return output;
+        return null;
     }
 
 }

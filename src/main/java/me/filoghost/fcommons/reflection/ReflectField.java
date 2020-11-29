@@ -10,26 +10,20 @@ import java.lang.reflect.Field;
 
 public interface ReflectField<T> {
 
-    static <T> ReflectField<T> lookup(Class<T> fieldType, Class<?> declaringClass, String fieldName) {
+    static <T> ReflectField<T> lookup(Class<?> declaringClass, String fieldName) {
         try {
             Field field = declaringClass.getDeclaredField(fieldName);
-            return new ValidReflectField<>(fieldType, field);
+            return new ValidReflectField<>(field);
         } catch (Throwable t) {
             return new UnknownReflectField<>(declaringClass, fieldName, t);
         }
     }
-
-    static <T> ReflectField<T> wrap(Class<T> fieldType, Field field) {
-        return new ValidReflectField<>(fieldType, field);
+    
+    static <T> ReflectField<T> wrap(Field field) {
+        return new ValidReflectField<>(field);
     }
 
-    static ReflectField<?> wrap(Field field) {
-        return new ValidReflectField<>(field.getType(), field);
-    }
-
-    TypeInfo<?> getDeclarationType() throws ReflectiveOperationException;
-
-    TypeInfo<T> getCheckedDeclarationType() throws ReflectiveOperationException;
+    TypeInfo<T> getTypeInfo() throws ReflectiveOperationException;
 
     T get(Object instance) throws ReflectiveOperationException;
 

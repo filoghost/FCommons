@@ -88,8 +88,8 @@ public class ListConverter<E> extends Converter<List<E>, List<ConfigValue>> {
         return configElement.isPresentAs(elementConverter.configValueType);
     }
 
-    public static boolean supports(Class<?> clazz) {
-        return clazz == List.class;
+    public static boolean supports(Class<?> typeClass) {
+        return typeClass == List.class;
     }
 
 }
