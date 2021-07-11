@@ -25,7 +25,7 @@ public final class Colors {
             if (current == '&' && i + 1 < string.length()) {
                 char next = string.charAt(i + 1);
 
-                if (next == '#' && FeatureSupport.HEX_CHAT_COLORS && isValidHexColor(string, i + 2)) {
+                if (next == '#' && FeatureSupport.HEX_CHAT_COLORS && isReplaceableHexColor(string, i + 2)) {
                     result.append(ChatColor.COLOR_CHAR);
                     result.append('x');
 
@@ -36,7 +36,7 @@ public final class Colors {
 
                     i += 1 + HEX_COLOR_LENGTH; // Skip '#' and hex string, which are already converted and added
 
-                } else if (isColorCode(next)) {
+                } else if (isReplaceableColorCode(next)) {
                     result.append(ChatColor.COLOR_CHAR);
                     result.append(Character.toLowerCase(next));
 
@@ -53,13 +53,13 @@ public final class Colors {
         return result.toString();
     }
 
-    private static boolean isValidHexColor(String string, int startIndex) {
+    private static boolean isReplaceableHexColor(String string, int startIndex) {
         if (string.length() - startIndex < HEX_COLOR_LENGTH) {
             return false;
         }
 
         for (int i = 0; i < HEX_COLOR_LENGTH; i++) {
-            if (!isHexCode(string.charAt(startIndex + i))) {
+            if (!isReplaceableHexCode(string.charAt(startIndex + i))) {
                 return false;
             }
         }
@@ -67,12 +67,73 @@ public final class Colors {
         return true;
     }
 
-    private static boolean isHexCode(char c) {
+    private static boolean isReplaceableHexCode(char c) {
         return "0123456789AaBbCcDdEeFf".indexOf(c) > -1;
     }
 
-    private static boolean isColorCode(char c) {
+    private static boolean isReplaceableColorCode(char c) {
         return "0123456789AaBbCcDdEeFfKkLlMmNnOoRr".indexOf(c) > -1;
+    }
+
+    public static String removeColors(@Nullable String string) {
+        if (Strings.isEmpty(string) || string.indexOf(ChatColor.COLOR_CHAR) == -1) {
+            return string;
+        }
+
+        StringBuilder result = new StringBuilder(string.length());
+
+        for (int i = 0; i < string.length(); i++) {
+            char current = string.charAt(i);
+
+            if (current == ChatColor.COLOR_CHAR && i + 1 < string.length()) {
+                char next = string.charAt(i + 1);
+
+                if (next == 'x' && FeatureSupport.HEX_CHAT_COLORS && isReplacedHexColor(string, i + 2)) {
+                    result.append('&');
+                    result.append('#');
+                    for (int j = 0; j < HEX_COLOR_LENGTH; j++) {
+                        result.append(string.charAt(i + 2 + (j * 2))); // Ignore COLOR_CHAR
+                    }
+
+                    i += 2 + HEX_COLOR_LENGTH * 2; // Skip 'x' and hex string length
+
+                } else if (isReplacedColorCode(next)) {
+                    result.append('&');
+                    result.append(next);
+
+                    i++; // Skip next character, which is already added
+
+                } else {
+                    result.append(current);
+                }
+            } else {
+                result.append(current);
+            }
+        }
+
+        return result.toString();
+    }
+
+    private static boolean isReplacedHexColor(String string, int startIndex) {
+        if (string.length() - startIndex < HEX_COLOR_LENGTH * 2) {
+            return false;
+        }
+
+        for (int i = 0; i < HEX_COLOR_LENGTH; i++) {
+            if (!isReplacedHexCode(string.charAt(startIndex + i * 2))) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static boolean isReplacedHexCode(char c) {
+        return "0123456789abcdef".indexOf(c) > -1;
+    }
+
+    private static boolean isReplacedColorCode(char c) {
+        return "0123456789abcdefklmnor".indexOf(c) > -1;
     }
 
     /**

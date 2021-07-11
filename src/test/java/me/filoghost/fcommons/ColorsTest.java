@@ -16,12 +16,18 @@ import static org.assertj.core.api.Assertions.*;
 class ColorsTest {
 
     @ParameterizedTest
-    @MethodSource("addColorsArguments")
+    @MethodSource("colorsArguments")
     void addColors(String input, String expectedOutput) {
         assertThat(Colors.addColors(input)).isEqualTo(expectedOutput);
     }
 
-    static Stream<Arguments> addColorsArguments() {
+    @ParameterizedTest
+    @MethodSource("colorsArguments")
+    void removeColors(String expectedOutput, String input) {
+        assertThat(Colors.removeColors(input)).isEqualTo(expectedOutput != null ? expectedOutput.toLowerCase() : null);
+    }
+
+    static Stream<Arguments> colorsArguments() {
         String validHexInput = "&#00ff00";
         String validHexOutput = "§x§0§0§f§f§0§0";
 
